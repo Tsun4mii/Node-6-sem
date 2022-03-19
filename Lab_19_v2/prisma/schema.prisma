@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Country {
+  id           Int     @id(map: "PK__Country__3213E83FB2914F7A") @default(autoincrement())
+  country_name String? @db.NVarChar(20)
+  Hotel        Hotel[]
+  Trip         Trip[]
+}
+
+model Customer {
+  id           Int            @id(map: "PK__Customer__3213E83F7591DFC9") @default(autoincrement())
+  name         String?        @db.NVarChar(30)
+  surname      String?        @db.NVarChar(30)
+  CustomerTrip CustomerTrip[]
+
+  @@index([name], map: "ix_custName")
+}
+
+model CustomerTrip {
+  id          Int       @id(map: "PK__Customer__3213E83FCDD44D86") @default(autoincrement())
+  customer_id Int?
+  trip_id     Int?
+  total_cost  Int?
+  Customer    Customer? @relation(fields: [customer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__CustomerT__custo__2B3F6F97")
+  Trip        Trip?     @relation(fields: [trip_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__CustomerT__trip___2C3393D0")
+}
+
+model Hotel {
+  id         Int          @id(map: "PK__Hotel__3213E83FF818F601") @default(autoincrement())
+  hotel_name String?      @db.NVarChar(20)
+  country_id Int?
+  Country    Country?     @relation(fields: [country_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__Hotel__country_i__30F848ED")
+  RouteHotel RouteHotel[]
+}
+
+model Route {
+  id             Int          @id(map: "PK__Route__3213E83F90E39E47") @default(autoincrement())
+  route_name     String?      @db.NVarChar(20)
+  route_duration Int?
+  route_cost     Int?
+  RouteHotel     RouteHotel[]
+  Trip           Trip[]
+}
+
+model RouteHotel {
+  id       Int    @id(map: "PK__RouteHot__3213E83F89C37AB3") @default(autoincrement())
+  route_id Int?
+  hotel_id Int?
+  Hotel    Hotel? @relation(fields: [hotel_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__RouteHote__hotel__34C8D9D1")
+  Route    Route? @relation(fields: [route_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__RouteHote__route__33D4B598")
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B61A2634044") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
+
+model Trip {
+  id           Int            @id(map: "PK__Trip__3213E83F044525DC") @default(autoincrement())
+  trip_date    DateTime?      @db.Date
+  trip_route   Int?
+  trip_cost    Int?
+  trip_country Int?
+  trip_name    String?        @db.NVarChar(30)
+  Country      Country?       @relation(fields: [trip_country], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__Trip__trip_count__49C3F6B7")
+  Route        Route?         @relation(fields: [trip_route], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK__Trip__trip_route__286302EC")
+  CustomerTrip CustomerTrip[]
+
+  @@index([id], map: "id_tripId")
+  @@index([trip_route], map: "ix_tripRoute")
+}
